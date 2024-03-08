@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { validWords } from '../utils/validWords';
 
-const Board = ({ currentPlayer, onTileClick, onWinner, reset}) => {
+const Board = ({ currentPlayer, onTileClick, onWinner, onDraw,  reset, setReset}) => {
   const [gameEnded, setGameEnded] = useState(false);
   const [winningIndices, setWinningIndices] = useState([]);
-
+  const [draw, setDraw] = useState(false);
   useEffect(() => {
     if (currentPlayer === 2 && !gameEnded) {
       // If it's AI's turn and the game is still ongoing, make the random valid move
@@ -14,6 +14,16 @@ const Board = ({ currentPlayer, onTileClick, onWinner, reset}) => {
       }
     }
   }, [currentPlayer, gameEnded]);
+
+  const checkForDraw = () => {
+    // Flatten the letters array and check if there are any empty tiles left
+    const isEmptyTile = letters.flat().some(tile => tile === '');
+    if (!isEmptyTile) {
+      setGameEnded(true);
+      setDraw(true);
+      onDraw(); // Call the onDraw callback to handle the draw event
+    }
+  };
 
   const badMove = () => {
     // Check horizontal lines
@@ -305,8 +315,10 @@ const Board = ({ currentPlayer, onTileClick, onWinner, reset}) => {
         onWinner(currentPlayer);
         setWinningIndices(getWinningIndices(newLetters));
         alert(`Player ${currentPlayer === 1 ? '1' : 'AI'} wins with the word: ${winner}`);
+    }else{
+      checkForDraw(); 
     }
-};
+  };
 
 
   useEffect(() => {
@@ -314,11 +326,13 @@ const Board = ({ currentPlayer, onTileClick, onWinner, reset}) => {
       // Reset the board when reset prop changes
       setGameEnded(false);
       setWinningIndices([]);
+      setDraw(false);
       setLetters([
         ['', '', ''],
         ['', '', ''],
         ['', '', ''],
       ]);
+      setReset(false);
     }
   }, [reset]);
 
@@ -364,7 +378,17 @@ const Board = ({ currentPlayer, onTileClick, onWinner, reset}) => {
                 } ${
                   isWinningIndex ? 'bg-green-500' : ''
                 }`}
-                onClick={() => currentPlayer === 1 ? handleTileClick(rowIndex, colIndex, prompt("Enter a character:")) : null}
+                onClick={() => {
+                  if (currentPlayer === 1) {
+                    const inputCharacter = prompt("Enter a single character:");
+                    if (inputCharacter && inputCharacter.length === 1) {
+                      handleTileClick(rowIndex, colIndex, inputCharacter);
+                    } else {
+                      alert("Please enter a single character.");
+                    }
+                  }
+                }}
+                
               >
                 {letter}
               </div>
