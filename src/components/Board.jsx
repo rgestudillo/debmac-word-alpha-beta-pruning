@@ -26,6 +26,7 @@ const Board = ({ currentPlayer, onTileClick, onWinner, onDraw,  reset, setReset}
   };
 
   const badMove = () => {
+    
     // Check horizontal lines
     for (let i = 0; i < 3; i++) {
       const horizontalLine = letters[i].join('');
@@ -242,29 +243,36 @@ const Board = ({ currentPlayer, onTileClick, onWinner, onDraw,  reset, setReset}
   
     // Iterate through empty tiles
     for (const { row, col } of emptyTiles) {
-      // Generate a random character
+      let validMoveFound = false;
 
-      const randomCharacter = characters.charAt(Math.floor(Math.random() * characters.length));
-  
-      // Make the move
-      const newLetters = [...letters];
-      newLetters[row][col] = randomCharacter.toUpperCase(); // Convert to uppercase
-      setLetters(newLetters);
-  
-      // Check if it's a bad move
-      if (!badMove()) {
-        allBadMoves = false;
-        handleTileClick(row, col, randomCharacter);
-        return; // Exit the function after making a valid move
-      } else {
-        // Reset the letter if it's a bad move
-        newLetters[row][col] = '';
+      // Iterate through all characters
+      for (const char of characters) {
+        // Make the move
+        console.log("char is: ", char);
+        const newLetters = [...letters];
+        newLetters[row][col] = char.toUpperCase(); // Convert to uppercase
         setLetters(newLetters);
+        // Check if it's a bad move
+        if (!badMove()) {
+          validMoveFound = true;
+          handleTileClick(row, col, char);
+          break; // Exit the loop after making a valid move
+        } else {
+          // Reset the letter if it's a bad move
+          newLetters[row][col] = '';
+          setLetters(newLetters);
+        }
+      }
+
+      if (validMoveFound) {
+        // Exit the function if a valid move is found
+        return;
       }
     }
   
     // If all moves are bad, perform a random move
     if (allBadMoves) {
+      console.log("ALL BAD MOVES");
       const randomIndex = Math.floor(Math.random() * emptyTiles.length);
       const { row, col } = emptyTiles[randomIndex];
       const randomCharacter = characters.charAt(Math.floor(Math.random() * characters.length));
